@@ -29,6 +29,7 @@ WiFiServer my_server(80);
       
 class myWifiSerial {
     public:
+      // setup
       void begin(String mode=WIFI_MODE_DEFAULT,String wifi_name=WIFI_NAME_DEFAULT,String wifi_password=WIFI_PASSWORD_DEFAULT,int max_connections=WIFI_MAX_CONNECTIONS_DEFAULT) {
         myWifiSerial::mode = mode;
         myWifiSerial::wifi_name = wifi_name;
@@ -54,26 +55,74 @@ class myWifiSerial {
           Serial.println("OK");
         }
       }
-      String get_wifi_name() { return myWifiSerial::wifi_name; }
-      String get_wifi_password() { return myWifiSerial::wifi_password; }
-      String get_wifi_mode() { return myWifiSerial::mode; }
-      int get_wifi_max_connections() { return myWifiSerial::max_connections; }
+      
+      // see settings
+      String get_wifi_name() { 
+        return myWifiSerial::wifi_name; 
+      }
+      String get_wifi_password() { 
+        return myWifiSerial::wifi_password; 
+      }
+      String get_wifi_mode() { 
+        return myWifiSerial::mode; 
+      }
+      int get_wifi_max_connections() { 
+        return myWifiSerial::max_connections; 
+      }
+
+      // Serial API
+      void print(String a) {
+        myWifiSerial::output_path += a;
+        myWifiSerial::update();
+      }
+      void println(String a="") {
+        myWifiSerial::print(a+"\n");
+        myWifiSerial::update();
+      }
+      int available() {
+        return myWifiSerial::input_path.length();
+      }
+      char read() {
+        char c = myWifiSerial::input_path[0];
+        myWifiSerial::input_path = myWifiSerial::input_path.substring(1,myWifiSerial::input_path.length()-1);
+        return c;
+      }
+
+      // more functions
+      String readLine() {
+        String a = myWifiSerial::input_path;
+        myWifiSerial::input_path = "";
+        return a;
+      }
+      bool connected() {
+        return myWifiSerial::connecting;
+      }
       
     private:
-      String wifi_name, wifi_password, mode, path;
+      String wifi_name, wifi_password, mode, input_path, output_path;
       int max_connections;
       WiFiClient client;
+      bool connecting;
 
       void update() {
-        if (myWifiSerial::mode==WIFI_MODE_SERVER) {
-          if (!myWifiSerial::client) {
+        if (!myWifiSerial::client.connected()) {
+          myWifiSerial::client.stop();
+          if (myWifiSerial::mode==WIFI_MODE_SERVER) {
             myWifiSerial::client = my_server.available();
           }
+          else {
+            myWifiSerial::client.connect("192.168.4.1", 80);
+          }
         }
-        else {
-          if (!myWifiSerial::client.connect("192.168.4.1", 80)) {
-            Serial.println("connection failed");
-            return;
+        myWifiSerial::connecting = myWifiSerial::client.connected();
+        if (myWifiSerial::connecting) {
+          while (myWifiSerial::client.available()) {
+            char c = myWifiSerial::client.read();
+            myWifiSerial::input_path += c;
+          }
+          if (output_path!="") {
+            client.print(myWifiSerial::output_path);
+            output_path = "";
           }
         }
       }
