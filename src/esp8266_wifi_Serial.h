@@ -77,14 +77,16 @@ class myWifiSerial {
       }
       void println(String a="") {
         myWifiSerial::print(a+"\n");
-        myWifiSerial::update();
       }
       int available() {
+        myWifiSerial::update();
         return myWifiSerial::input_path.length();
       }
       char read() {
+        myWifiSerial::update();
+        if (myWifiSerial::input_path.length()==0) return -1;
         char c = myWifiSerial::input_path[0];
-        myWifiSerial::input_path = myWifiSerial::input_path.substring(1,myWifiSerial::input_path.length()-1);
+        myWifiSerial::input_path = myWifiSerial::input_path.substring(1,myWifiSerial::input_path.length());
         return c;
       }
 
@@ -120,9 +122,9 @@ class myWifiSerial {
             char c = myWifiSerial::client.read();
             myWifiSerial::input_path += c;
           }
-          if (output_path!="") {
+          if (myWifiSerial::output_path!="") {
             client.print(myWifiSerial::output_path);
-            output_path = "";
+            myWifiSerial::output_path = "";
           }
         }
       }
