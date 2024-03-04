@@ -16,7 +16,14 @@
 
 #pragma once
 
-#include <ESP8266WiFi.h>
+
+#if defined(ESP32)
+  #include <WiFi.h>
+#elif defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#else
+  #error "lib not supported this board"
+#endif
 
 #define WIFI_NAME_DEFAULT "uzKoQOg02HYQacJUQGX2"
 #define WIFI_PASSWORD_DEFAULT "3XnoFOYwxYZv3DP9sM0X"
